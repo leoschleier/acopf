@@ -1,0 +1,3 @@
+bus;Qmax;Qmin;Pmax;Pmin;baseMVA;baseKV
+1;18;-0.3;50;0;100;345
+5;18;-0.3;50;0;100;345

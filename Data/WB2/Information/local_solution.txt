@@ -1,0 +1,41 @@
+===================================================
+|          LOCAL SOLUTION DATA 1                  |
+===================================================
+
+Objective Value = 905.73
+
+Bus	Voltage	Angle(deg)
+1	0.95	0.00
+2	0.98	-64.94
+
+
+-------Generation-------
+Bus	P(MW)	Q(MVars)
+1	452.86	164.32
+
+
+-------Line Flows-------
+from	to 	P(MW)	Q(MW)	Line Loss(MW)
+ 1		2	452.86	164.32	102.86
+
+
+===================================================
+|          LOCAL SOLUTION DATA 2                  |
+===================================================
+
+Objective Value = 877.78
+
+Bus	Voltage	Angle(deg)
+1	0.95	0.00
+2	1.05	-57.14
+
+
+-------Generation-------
+Bus	P(MW)	Q(MVars)
+1	438.89	94.44
+
+
+-------Line Flows-------
+from	to 	P(MW)	Q(MW)	Line Loss(MW)
+ 1		2	438.89	94.44	88.89
+
