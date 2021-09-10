@@ -97,5 +97,3 @@ class ParameterCalculator:
             else:
                 phase.append(math.degrees(math.atan(re/im)))
         return magnitude, phase
-            
-    
