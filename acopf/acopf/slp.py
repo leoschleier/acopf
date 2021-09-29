@@ -1,9 +1,21 @@
 import gurobipy as gp
 
-
 class ModelBuilder:
+    """Facilitates creation, adjustment, and execution of a LP approximation of the ACOPF problem.
+        The model is built using the gurobipy module.
+    """
 
-    def __init__(self, n_nodes, gen_nodes, n_obj_segments, lines, lp_name='ACOPF'):
+    def __init__(self, n_nodes:int, gen_nodes:list, n_obj_segments:int, lines:dict, lp_name='ACOPF'):
+        """Creates a ModelBuilder instance.
+
+        Args:
+            n_nodes (int): Number of nodes (buses) of the grid. The nodes are numbered from 1 to n_nodes+1.
+            gen_nodes (list): List of node numbers that include a generator.
+            n_obj_segments (int): Number of linear segments that will approximate the objective function.
+            lines (dict): Dictionary where lines['nm'] and lines['mn'] contain a list of tuples of nodes (x,y) 
+                and (y,x) that describe a line.
+            lp_name (str, optional): Name of the resulting LP. Defaults to 'ACOPF'.
+        """
         self.model = gp.Model('LP: '+str(lp_name))
         self.obj_vars = self.model.addVars(
             gen_nodes, range(n_obj_segments), name='obj_vars')
@@ -61,6 +73,12 @@ class ModelBuilder:
         self.penalty = gp.LinExpr()
 
     def run(self, write_solution=False):
+        """Starts the optimization process of the Gurobi model.
+
+        Args:
+            write_solution (bool, optional): If True, the .sol file of the solution found is written to the 
+                current folder. Defaults to False.
+        """
         self.model.update()
         self.model.optimize()
         if write_solution:
@@ -68,19 +86,45 @@ class ModelBuilder:
         return
 
     def write_model(self, filename="model"):
+        """Writes the current Gurobi model to a .lp file in the current folder.
+
+        Args:
+            filename (str, optional): Name of the .lp file. Defaults to "model".
+        """
         self.model.write(filename+".lp")
         return
 
     def write_solution(self, filename="solution"):
+        """Writes the current Gurobi solution to a .sol file in the current folder.
+
+        Args:
+            filename (str, optional): Name of the .sol file. Defaults to "solution".
+        """
         self.model.write(filename+".sol")
         return
 
     def write_iis(self, filename="model_iis"):
+        """Computes and writes the Irreducible Inconsistent Subsystem (IIS) of the current model to the current folder
+
+        Args:
+            filename (str, optional): Name of the .ilp file. Defaults to "model_iis".
+        """
         self.model.computeIIS()
         self.model.write(filename+".ilp")
         return
 
-    def add_objective(self, costs_generators, pn_viol_facts, qn_viol_facts, vn_viol_facts, ik_viol_facts):
+    def add_objective(self, costs_generators:list, pn_viol_facts:list, qn_viol_facts:list, vn_viol_facts:list, 
+            ik_viol_facts:list):
+        """Adds the objective (cost) function to the model.
+
+        Args:
+            costs_generators (list): List of tuples of cost coefficients (fix_costs, list(marginal_costs)) for each 
+                generator.
+            pn_viol_facts (list): Violation factors for active power variables.
+            qn_viol_facts (list): Violation factors for reactive power variables.
+            vn_viol_facts (list): Violation factors for bus voltage variables.
+            ik_viol_facts (list): Violation factors for line current variables.
+        """
         c_0_sum = sum([x[0] for x in costs_generators])
         c_gen_all = []
         for x in costs_generators:
@@ -100,7 +144,13 @@ class ModelBuilder:
         self.model.setObjective(self.offers+self.penalty, gp.GRB.MINIMIZE)
         return
 
-    def add_obj_constraints(self, p_minima, p_maxima):
+    def add_obj_constraints(self, p_minima: list, p_maxima:list):
+        """Adds constraints to the objective (generator active power) variables
+
+        Args:
+            p_minima (list): Lower bounds for active power at each generator.
+            p_maxima (list): Upper bounds for active power at each generator.
+        """
         for n, p_min, p_max in zip(self.gen_nodes, p_minima, p_maxima):
             p_segment_length = (p_max-p_min)/self.n_obj_segments
             self.model.addConstrs(
@@ -109,7 +159,14 @@ class ModelBuilder:
                 self.p_n[n] == self.obj_vars.sum(n, '*')+p_min)
         return
 
-    def add_flow_constraints(self, yk_matrices, gn_shunt, bn_shunt):
+    def add_flow_constraints(self, yk_matrices:list, gn_shunt:list, bn_shunt:list):
+        """Adds current flow constraints for both directions of each line.
+
+        Args:
+            yk_matrices (list): Admittance matrices for each line. 
+            gn_shunt (list): Shunt conductance for each node.
+            bn_shunt (list): Shunt supsceptance for each node.
+        """
         for yk, nm, mn in zip(yk_matrices, self.lines['nm'], self.lines['mn']):
             self.model.addConstr(yk[0, 0].real*self.v_n_r[nm[0]] - yk[0, 0].imag*self.v_n_j[nm[0]]
                                  + yk[0, 1].real*self.v_n_r[nm[1]] - yk[0, 1].imag*self.v_n_j[nm[1]] == self.i_k_r[nm])
@@ -127,7 +184,14 @@ class ModelBuilder:
                                  == self.i_n_j[n])
         return
 
-    def add_step_size_constraints(self, vnr_eva_points, vnj_eva_points, vn_limits):
+    def add_step_size_constraints(self, vnr_eva_points:list, vnj_eva_points:list, vn_limits:list):
+        """Adds step size constraints.
+
+        Args:
+            vnr_eva_points (list): Evaluation points of the real part of the bus voltages.
+            vnj_eva_points (list): Evaluation points of the imaginary part of the bus voltages.
+            vn_limits (list): Bus voltage limits that serve as step size limits.
+        """
         self.step_size_constraints.append(self.model.addConstrs(self.v_n_r[n]-vnr_eva_points[n-1] <= vn_limits[n-1]
                                                                 for n in range(1, self.n_nodes+1)))
         self.step_size_constraints.append(self.model.addConstrs(self.v_n_j[n]-vnj_eva_points[n-1] <= vn_limits[n-1]
@@ -138,7 +202,13 @@ class ModelBuilder:
                                                                 for n in range(1, self.n_nodes+1)))
         return
 
-    def add_box_constraints(self, vn_maxima, ik_maxima):
+    def add_box_constraints(self, vn_maxima:list, ik_maxima:dict):
+        """Adds box constraints to voltage and current variables.
+
+        Args:
+            vn_maxima (list): Upper limits of bus voltages.
+            ik_maxima (dict): Upper limits of line currents.
+        """
         self.model.addConstrs(self.v_n_r[n] >= -vn_maxima[n-1]
                               for n in range(1, self.n_nodes+1))
         self.model.addConstrs(self.v_n_r[n] <= vn_maxima[n-1]
@@ -155,7 +225,20 @@ class ModelBuilder:
             self.model.addConstrs(self.i_k_j[ij] <= ik_max for ij in [nm, mn])
         return
 
-    def add_taylor_constraints(self, vnr_eva, vnj_eva, inr_eva, inj_eva, ikr_eva, ikj_eva, pn_d, qn_d):
+    def add_taylor_constraints(self, vnr_eva:list, vnj_eva:list, inr_eva:list, inj_eva:list, ikr_eva:dict, 
+            ikj_eva:dict, pn_d:list, qn_d:list):
+        """Adds taylor series approximations of the nonlinear ACOPF constraints.
+
+        Args:
+            vnr_eva (list): Real bus voltage evaluation points.
+            vnj_eva (list): Imaginary bus voltage evaluation points.
+            inr_eva (list): Real injected current evaluation points.
+            inj_eva (list): Imaginary injected current evaluation points.
+            ikr_eva (dict): Real line current evaluation points.
+            ikj_eva (dict): Imaginary line current evaluation points.
+            pn_d (list): Active power demand at each bus.
+            qn_d (list): Reactive power demand at each bus.
+        """
         self.vn_taylor = self.model.addConstrs(self.v_n_sq[n] == 2*vnr_eva[n-1]*self.v_n_r[n]
                                                + 2*vnj_eva[n-1]*self.v_n_j[n] -
                                                vnr_eva[n-1]**2 -
@@ -179,7 +262,15 @@ class ModelBuilder:
                                                + self.lines['mn'], ikr_eva, ikj_eva))
         return
 
-    def add_power_constraints(self, p_min, p_max, q_min, q_max):
+    def add_power_constraints(self, p_min:list, p_max:list, q_min:list, q_max:list):
+        """Adds upper and lower limits for each bus. 
+
+        Args:
+            p_min (list): Lower limits to active power at each bus.
+            p_max (list): Upper limits to active power at each bus.
+            q_min (list): Lower limits to reactive power at each bus.
+            q_max (list): Upper limits to reactive power at each bus.
+        """
         self.model.addConstrs(
             self.p_n[n] <= p_max[n-1]+self.pn_viol_u[n] for n in range(1, self.n_nodes+1))
         self.model.addConstrs(
@@ -190,7 +281,14 @@ class ModelBuilder:
             self.q_n[n] >= q_min[n-1]-self.qn_viol_l[n] for n in range(1, self.n_nodes+1))
         return
 
-    def add_iv_constraints(self, vn_min, vn_max, ik_max):
+    def add_iv_constraints(self, vn_min:list, vn_max:list, ik_max:dict):
+        """Adds constraints for absolute bus voltages and absolute line currents.
+
+        Args:
+            vn_min (list): Lower limit for bus voltage.
+            vn_max (list): Upper limit for bus voltage.
+            ik_max (dict): Upper limit for line currents.
+        """
         self.model.addConstrs(
             self.v_n_sq[n] <= vn_max[n-1]**2 + self.vn_viol_u[n] for n in range(1, self.n_nodes+1))
         self.model.addConstrs(
@@ -203,35 +301,59 @@ class ModelBuilder:
                 self.i_k_sq[mn] <= imax**2 + self.ik_viol_u[mn])
         return
 
-    def add_voltage_cutting_plane(self, vnr_eva_dict, vnj_eva_dict, v_max, vn_updated_keys):
+    def add_voltage_cutting_plane(self, vnr_eva_dict:dict, vnj_eva_dict:dict, v_max:list, vn_updated_keys:list):
+        """Adds  bus voltage cutting plane to cut off solutions that are infeasible in the original ACOPF.
+
+        Args:
+            vnr_eva_dict (dict): New voltage evaluation points.
+            vnj_eva_dict (dict): New voltage evaluation points.
+            v_max (list): Upper limit of absolute voltage level.
+            vn_updated_keys (list): Keys of bus voltages that require a cutting plane.
+        """
         for key, vmax in zip(vn_updated_keys, v_max):
             self.add_cutting_plane(self.v_n_r[key], vnr_eva_dict[key], self.v_n_j[key], vnj_eva_dict[key], vmax,
                                    self.vn_viol_u[key])
         return
 
-    def add_line_current_cutting_plane(self, ikr_eva_dict, ikj_eva_dict, ik_max, ik_updated_keys):
+    def add_line_current_cutting_plane(self, ikr_eva_dict:dict, ikj_eva_dict:dict, ik_max:list, ik_updated_keys:list):
+        """Adds line current cutting plane to cut off solutions that are infeasible in the original ACOPF.
+
+        Args:
+            ikr_eva_dict (dict): New line current evaluation points.
+            ikj_eva_dict (dict): New line current evaluation points.
+            ik_max (list): Upper limit of absolute line current.
+            ik_updated_keys (list): Keys of kube currents that require a cutting plane.
+        """
         for key, imax in zip(ik_updated_keys, ik_max):
             self.add_cutting_plane(self.i_k_r[key], ikr_eva_dict[key], self.i_k_j[key], ikj_eva_dict[key], imax,
                                    self.ik_viol_u[key])
         return
 
     def add_cutting_plane(self, xr, xr_eva, xj, xj_eva, x_max, x_viol_u):
+        """Adds a cutting plane to the problem.
+        """
         self.cut_constraints.append(self.model.addConstr(
             xr_eva*xr + xj_eva*xj <= x_max**2 + x_viol_u))
         return
 
     def remove_cutting_planes(self):
+        """Removes all cutting planes
+        """
         for constrs in self.cut_constraints:
             self.model.remove(constrs)
             self.cut_constraints = []
         return
 
     def remove_step_size_constraints(self):
+        """Removes all step size constraints
+        """
         self.model.remove(self.step_size_constraints)
         self.step_size_constraints = []
         return
 
     def remove_taylor_constraints(self):
+        """Removes all taylor constraints.
+        """
         self.model.remove(self.vn_taylor)
         self.model.remove(self.pn_taylor)
         self.model.remove(self.qn_taylor)
