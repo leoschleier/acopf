@@ -8,10 +8,10 @@ The ACOPF is NP-hard. Hence, a globally optimal solution can probably not be fou
 ## A Successive Linear Programming Algorithm
 Castillo et. al [1] use a linear program (LP) to approximate a version of the ACOPF. As linear programming itself would not provide an adequate solution to the original problem, an algorithm is set up to modify and solve the LP iteratively. Their successive linear programming (SLP) algorithm adds, adjusts, and removes certain constraints of the LP approximation.
 
-The present implementation of central parts of the SLP algorithm is able to efficiently find a local optimal solutions to the original ACOPF problem.
+The present implementation of central parts of the SLP algorithm is able to efficiently find a local optimal solution to the original ACOPF problem.
 
 ## Test Cases
-Test cases are drawn from Bukhsh et al. [2] who examine ACOPFs for local optimal solutions. Their results can be found in an online archive [3]. Those test cases are chosen, because they enable a verifcation of results while studying the behavior of the algorithm.
+Test cases are drawn from Bukhsh et al. [2] who examine ACOPFs for local optimal solutions. Their results can be found in an online archive [3]. As those test cases already provide local optimal solutions, they enable a verifcation of results while studying the behavior of the algorithm.
 
 ## References
 [1] Castillo, A., Lipka, P., Watson, J.-P., Oren, S. S., and O'Neill, R. P. A successive linear programming approach to solving the iv-acopf. IEEE Transactions on Power Systems 31, 4 (2016), 2752-2763.
