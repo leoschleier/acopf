@@ -54,7 +54,7 @@ pyparsing @ file:///home/linux1/recipes/ci/pyparsing_1610983426697/work
 PyPDF2==1.26.0
 python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
 pytz==2021.1
-pywin32==228
+pywin32==301
 pyzmq==20.0.0
 rapidfuzz==1.4.1
 regex==2021.8.3
