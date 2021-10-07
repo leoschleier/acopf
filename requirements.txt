@@ -73,7 +73,7 @@ tornado @ file:///C:/ci/tornado_1606924294691/work
 tqdm==4.62.0
 traitlets @ file:///home/ktietz/src/ci/traitlets_1611929699868/work
 tzlocal==2.1
-urllib3==1.25.11
+urllib3==1.26.5
 validators==0.18.2
 wcwidth @ file:///tmp/build/80754af9/wcwidth_1593447189090/work
 webencodings==0.5.1
