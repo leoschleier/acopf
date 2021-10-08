@@ -54,7 +54,7 @@ pyparsing @ file:///home/linux1/recipes/ci/pyparsing_1610983426697/work
 PyPDF2==1.26.0
 python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
 pytz==2021.1
-pywin32==228
+pywin32==301
 pyzmq==20.0.0
 rapidfuzz==1.4.1
 regex==2021.8.3
@@ -73,9 +73,8 @@ tornado @ file:///C:/ci/tornado_1606924294691/work
 tqdm==4.62.0
 traitlets @ file:///home/ktietz/src/ci/traitlets_1611929699868/work
 tzlocal==2.1
-urllib3==1.25.11
+urllib3==1.26.7
 validators==0.18.2
 wcwidth @ file:///tmp/build/80754af9/wcwidth_1593447189090/work
 webencodings==0.5.1
-wetterdienst==0.20.3
 wincertstore==0.2
