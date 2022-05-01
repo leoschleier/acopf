@@ -51,7 +51,7 @@ prompt-toolkit @ file:///tmp/build/80754af9/prompt-toolkit_1616415428029/work
 pycodestyle @ file:///tmp/build/80754af9/pycodestyle_1615748559966/work
 Pygments @ file:///tmp/build/80754af9/pygments_1621606182707/work
 pyparsing @ file:///home/linux1/recipes/ci/pyparsing_1610983426697/work
-PyPDF2==1.26.0
+PyPDF2==1.27.5
 python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
 pytz==2021.1
 pywin32==301
