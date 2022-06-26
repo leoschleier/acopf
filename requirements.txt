@@ -38,7 +38,7 @@ mkl-random @ file:///C:/ci/mkl_random_1626186184308/work
 mkl-service==2.4.0
 mpmath==1.2.1
 munkres==1.1.4
-numpy==1.21.1
+numpy==1.22.0
 olefile @ file:///Users/ktietz/demo/mc3/conda-bld/olefile_1629805411829/work
 packaging==21.0
 pandas==1.3.1
