@@ -58,7 +58,7 @@ pywin32==301
 pyzmq==20.0.0
 rapidfuzz==1.4.1
 regex==2021.8.3
-requests==2.26.0
+requests==2.31.0
 requests-cache==0.5.2
 requests-ftp==0.3.1
 scipy==1.7.1
